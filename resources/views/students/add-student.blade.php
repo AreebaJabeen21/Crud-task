@@ -1,6 +1,8 @@
 @extends('includes.master')
 <?php
 $students = $students ??  null;
+$courses = $courses ??  $enroll_courses;
+$enroll_courses = $enroll_courses ?? null;
 ?>
 @section('title', 'Add New Student')
 @push('css')
@@ -37,14 +39,16 @@ $students = $students ??  null;
                 </div>
                 <div class="mb-3">
                     <label class="form-label">CNIC Number</label>
-                    <input type="text" name="cnic" class="form-control" value="{{ old('cnic') ?? optional($students)->cnic }}">
+
+                    <input type="text" name="cnic" class="form-control" id="js_cnic" data-inputmask="'mask': '99999-9999999-9'"  placeholder="XXXXX-XXXXXXX-X"
+                    value="{{ old('cnic') ?? optional($students)->cnic }}">
                     @error('cnic')
                         <p class="text-danger my-2">{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Date Of Birth</label>
-                    <input type="text" id="js-birthday" name="dob" class="form-control"
+                    <input type="text" id="js_birthday" name="dob" class="form-control"
                     value="{{ old('dob') ?? optional($students)->dob }}">
                     @error('dob')
                         <p class="text-danger my-2">{{ $message }}</p>
@@ -59,10 +63,10 @@ $students = $students ??  null;
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Gender</label>
-                    <select class="form-select" name="gender" value="{{ old('gender') ?? optional($students)->gender }}">
+                    <select class="form-select" name="gender" >
                         <option value="">--Select Gender--</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
+                        <option value="Male" {{ (old('gender') ?? optional($students)->gender == 'Male') ? 'selected' : '' }}>Male</option>
+                        <option value="Female" {{ (old('gender') ?? optional($students)->gender == 'Female') ? 'selected' : '' }}>Female</option>
                     </select>
                     @error('gender')
                         <p class="text-danger my-2">{{ $message }}</p>
@@ -72,10 +76,11 @@ $students = $students ??  null;
                 <div class="mb-3">
                     <label class="form-label">Course</label>
                     <select class="form-select selectpicker" multiple data-live-search="true" name="course[]"
-                    id="select_course" value="{{ old('course') ?? optional($students)->course }}">
+                    id="select_course" value="">
                         <option value="">--Select Course--</option>
+
                         @foreach ($courses as $course)
-                            <option value="{{ $course -> id }}">{{ $course -> course_title }}</option>
+                            <option value="{{ $course -> id }}" {{ $enroll_courses ? 'selected' : '' }}>{{ $course -> course_title }}</option>
                         @endforeach
                     </select>
 
@@ -86,14 +91,16 @@ $students = $students ??  null;
     </div>
     @push('js')
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/jquery.inputmask.bundle.js"></script>
+
         <script>
-            $('#js-birthday').flatpickr({
+            $('#js_birthday').flatpickr({
                 altInput: true,
                 altFormat: "d-m-Y",
                 altInputClass: "form-control bg-white",
                 disableMobile: true,
             });
-
+            $("#js_cnic").inputmask();
 
         </script>
     @endpush

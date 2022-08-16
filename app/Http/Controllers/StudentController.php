@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\{Student, Course};
+use DB;
 class StudentController extends Controller
 {
     /**
@@ -40,16 +41,19 @@ class StudentController extends Controller
     {
         $validated_data = $request->validate([
             'name' => 'required',
-            'cnic' => 'required|unique:students',
+            'cnic' => 'required|regex:^[0-9]{5}-[0-9]{7}-[0-9]$^|unique:students',
             'dob' => 'required|date',
             'age' => 'required|numeric',
             'gender' => 'required',
             'course' => 'nullable',
         ]);
-dd($request -> course);
+
         $is_created= Student::create($validated_data);
         $latest_added_student = Student::latest()->first();
-        $store = $latest_added_student->courses()->sync([$request -> course]);
+
+        foreach ($request->course as $value) {
+            $store = $latest_added_student->courses()->attach([$value]);
+        }
 
         if(!$is_created) {
             return redirect()->back()->with(['message' => 'Something Went wrong']);
@@ -68,7 +72,13 @@ dd($request -> course);
     public function show($id)
     {
         $student = Student::withTrashed()->find( $id);
-        return view('students.single-student', compact('student'));
+            $enroll_courses = DB::table('course_student')
+                    ->join('courses','courses.id','=','course_id')
+                    ->join('students','students.id','=','student_id')
+                    ->where('students.id',$id)
+                   ->get(['courses.course_title']);
+
+        return view('students.single-student', compact('student', 'enroll_courses'));
     }
 
     /**
@@ -82,8 +92,15 @@ dd($request -> course);
         $students = Student::where('id', $id)
         ->withTrashed()
         ->firstOrfail();
-        $action_route = route('student.update', [$students->id]);
-        return view('students.add-student', compact('students', 'action_route'));
+
+        $enroll_courses = DB::table('course_student')
+        ->join('courses','courses.id','=','course_id')
+        ->join('students','students.id','=','student_id')
+        ->where('students.id',$id)
+       ->get(['courses.course_title', 'courses.id']);
+
+       $action_route = route('student.update', [$students->id]);
+        return view('students.add-student', compact('students', 'action_route', 'enroll_courses'));
     }
 
     /**
@@ -101,7 +118,7 @@ dd($request -> course);
             'dob' => 'required|date',
             'age' => 'required|numeric',
             'gender' => 'required',
-            // 'course' => 'required|digits:4',
+            'course' => 'nullable',
         ]);
 
         $is_student_updated = Student::where('id', $id)

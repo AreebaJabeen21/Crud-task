@@ -13,7 +13,7 @@ class CourseSeeder extends Seeder
      */
     public function run()
     {
-        $itc_course = [
+        $course_1 = [
             'course_code' => 'A101',
             'course_title' => 'Introduction to computer',
             'credit_hours' => '3',
@@ -21,16 +21,16 @@ class CourseSeeder extends Seeder
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
-        $pf = [
+        $course_2 = [
             'course_code' => 'A102',
             'course_title' => 'Programming Fundamentals',
-            'credit_hours' => '3',
+            'credit_hours' => '2',
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
         Course::upsert(
-            [$itc_course, $pf],
+            [$course_1, $course_2],
             ['course_code'],
             ['course_code', 'course_title', 'credit_hours'],
         );
